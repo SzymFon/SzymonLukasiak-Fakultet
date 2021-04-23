@@ -1,0 +1,127 @@
+//// CoUNTER /////
+import React from 'react';
+
+interface CounterProps{
+    initialNumber? : number;
+    onNumberChange: (someNumber: number) => void;
+
+}
+
+const Counter:React.FC<CounterProps> = ({initialNumber, onNumberChange} ) => {
+    const [counterNumber, setCounterNumber] = React.useState(initialNumber || 0) ;
+    
+
+    const addNumber = () => {
+        const number = counterNumber +1;
+        setCounterNumber(number;
+        onNumberChange && onNumberChange(number);
+    }
+    const decreaseNumber = () => {
+        const number = counterNumber +1;
+        setCounterNumber(number);
+        onNumberChange && onNumberChange(number);
+    }
+
+    return (
+        <div>
+            <button onClick={addNumber}> + </button>
+            {counterNumber}
+            <button onClick={decreaseNumber}> - </button>
+        </div>
+    );
+}
+
+export default Counter;
+
+//// CustomHeader /////
+import logo from '../logo.svg';
+
+/*const CustomHeader = () => {
+    return(
+        <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+            Edit <code>src/App.tsx</code> and save to reload.
+        </p>
+        <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blan"
+            rel="noopener noreferrer"
+        >
+            learn React
+        </a>
+        </header>
+    );
+}*/
+const CustomHeader: React.FC = ({ children}) => {
+    return(
+    <div>
+        <p>Custmo Header</p>
+        {children}
+    </div>
+    );
+};
+
+export const addNumber = (a: number, b: number) => {
+    return a+b;
+}
+
+export default CustomHeader;
+
+
+//////// Appp //////////////
+import React from 'react';
+import logo from './logo.svg';
+import './App.css';
+
+import CustomHeader, { addNumber } from './conponenst/CustomHeader';
+import Counter from './conponenst/Counter';
+
+const App = () => {
+  const addedNumber = addNumber(1, 2);
+  const [changedNumber, setChangedNumber] =React.useState(0);
+
+  const handleNumberChange = (newNumber: number) =>{
+     setChangedNumber(newNumber);
+  }
+
+  const liczbaMniejszaOdZera = (liczba: number) => {
+    if(liczba < 0) {
+      return (<div> liczba jest mniejsza od 0</div>)
+    }
+  }
+
+  return (
+    <div className="App">
+      <CustomHeader>
+        <Counter onNumberChange={(newNumber) => {console.log(newNumber)}}/>
+        {
+          changedNumber > 0 && (<div> liczba jest wieksza od 0 </div>)
+        }
+      </CustomHeader>
+    </div>
+  )
+}
+
+export default App;
+// function App() {
+//   return (
+//     <div className="App">
+//       <header className="App-header">
+//         <img src={logo} className="App-logo" alt="logo" />
+//         <p>
+//           Edit <code>src/App.tsx</code> and save to reload.
+//         </p>
+//         <a
+//           className="App-link"
+//           href="https://reactjs.org"
+//           target="_blank"
+//           rel="noopener noreferrer"
+//         >
+//           Learn React
+//         </a>
+//       </header>
+//     </div>
+//   );
+}
