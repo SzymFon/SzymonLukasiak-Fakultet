@@ -1,0 +1,161 @@
+//// movies.services ///////////
+
+enum MethodType {
+    POST = 'POST',
+    PUT = 'PUT',
+    GET = 'GET',
+    DELETE = 'DELETE',
+};
+
+const requestFunction = <R> (
+    url: string,
+    payload: any,
+    method: MethodType,
+    auth: string
+
+): Promise<R> =>{
+
+    const options: RequestInit = {
+        method,
+        ...(!!auth && {
+            headers: {
+                Authorization: `Bearer ${auth}`,
+            }
+        }),
+    };
+
+    let parsedUrl = url;
+
+    if (
+        method === MethodType.POST ||
+        method === MethodType.PUT ||
+        payload
+    ){
+        options.body = JSON.stringify(payload);
+    } else if(payload){
+        const query = Object.keys(payload).map((key: string)=> `${key}=${payload[key]}`)
+        .join(`&`);
+
+        parsedUrl = `${url}?${query}`;
+    }
+
+    return new Promise((resolve,reject) =>{
+        fetch(parsedUrl, options)
+        .then(res => res.json().then(data=>{
+            if(res.status !== 200) reject(Error(`Result status code of ${res.status}`));
+            return data;
+        }))
+        .then(json =>resolve(json))
+        .catch(err => reject(err));
+    } );
+}
+const http = {
+    post: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.POST, auth),
+    get: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.GET, auth),
+    put: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.PUT, auth),
+    delete: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.DELETE, auth),
+}
+
+export default http;
+
+
+/////// key /////////
+export const omdApiKey = 'b5752f46';
+
+////// Home //////////
+import React from 'react'
+import NavPanel from '../../conponenst/NavPanel';
+import { omdApiKey} from '../../key';
+import http from '../../utils/http';
+import movieService from '../../services/movies.service';
+
+
+const Home = () => {
+
+    const [search, setSearch] = React.useState('harry potter');
+    const [movie, setMovie]= React.useState ({});
+    
+    React.useEffect(()=>{
+        const makeRequest = async () => {
+            try{
+
+                const responce = movieService.serachByName(search,1);
+
+                setMovie(responce);
+            }   catch(error){
+                console.group(error);
+            }
+        };
+        makeRequest();
+    }, [search]);
+    
+
+    return (
+    <div> 
+        <NavPanel/>
+        <div>This is home page.</div>
+    </div>
+    );
+}
+
+export default Home;
+
+//http//////
+
+enum MethodType {
+    POST = 'POST',
+    PUT = 'PUT',
+    GET = 'GET',
+    DELETE = 'DELETE',
+};
+
+const requestFunction = <R> (
+    url: string,
+    payload: any,
+    method: MethodType,
+    auth: string
+
+): Promise<R> =>{
+
+    const options: RequestInit = {
+        method,
+        ...(!!auth && {
+            headers: {
+                Authorization: `Bearer ${auth}`,
+            }
+        }),
+    };
+
+    let parsedUrl = url;
+
+    if (
+        method === MethodType.POST ||
+        method === MethodType.PUT ||
+        payload
+    ){
+        options.body = JSON.stringify(payload);
+    } else if(payload){
+        const query = Object.keys(payload).map((key: string)=> `${key}=${payload[key]}`)
+        .join(`&`);
+
+        parsedUrl = `${url}?${query}`;
+    }
+
+    return new Promise((resolve,reject) =>{
+        fetch(parsedUrl, options)
+        .then(res => res.json().then(data=>{
+            if(res.status !== 200) reject(Error(`Result status code of ${res.status}`));
+            return data;
+        }))
+        .then(json =>resolve(json))
+        .catch(err => reject(err));
+    } );
+}
+const http = {
+    post: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.POST, auth),
+    get: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.GET, auth),
+    put: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.PUT, auth),
+    delete: (url: string, payload: any, auth: string ='') => requestFunction(url, payload, MethodType.DELETE, auth),
+}
+
+export default http;
