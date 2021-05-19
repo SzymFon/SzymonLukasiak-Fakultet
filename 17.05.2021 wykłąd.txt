@@ -1,0 +1,179 @@
+// app ///
+import React from 'react';
+import logo from './logo.svg';
+import { Switch, Route, BrowserRouter} from 'react-router-dom';
+import { Provider} from 'react-redux';
+
+import Home from './Views/home/Home';
+import Movie from './Views/movie/Movie';
+import Page404 from './Views/page404/Page404';
+import store from './store';
+
+import './App.css';
+import { FiberPin } from '@material-ui/icons';
+
+const App = () => {
+    
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Provider store={ store}>
+          <Switch>
+            <Route path="/" component ={Home} exact />
+            <Route path="/movie/:id" component={Movie}/>
+            <Route path="*" component ={ Page404} />
+          </Switch>
+        </Provider>
+      </BrowserRouter>
+
+    </div>
+  );
+}
+
+
+
+export default App;
+
+/////////// index ////////////
+
+import {createStore} from "redux";
+import { composeWithDevTools } from "redux-devtools-extension";
+import {initialStoreState, reducers, StoreState, StoreActionTypes, StoreActionType} from "./store";
+
+
+const store = createStore<StoreState, StoreActionType, any, any>
+    (reducers, initialStoreState, composeWithDevTools());
+
+export default store;
+
+/////////// store ///////////////////
+import { combineReducers } from "redux";
+import { todosStoreReducer, TodosList, todosListInitialState } from "./reducers/todos.reducer"
+import {Actions as todosActions} from './actions/todos.actions';
+
+
+export type StoreActionType = todosActions;
+
+interface StoreState{
+    todos: TodosList;
+};
+
+export const initialStoreState: StoreState = {
+    todos: todosListInitialState,
+};
+
+
+export const reducers = combineReducers<StoreState>({
+    todos: todosStoreReducer,
+});
+
+//////////// todos.reducer ///////////////////////
+import { CallToActionSharp, Description } from "@material-ui/icons";
+import { Reducer } from "redux";
+import { TodosStoreActions } from "../actions/todos.actions";
+
+export interface Todo {
+    id:number;
+    label: string;
+    done: boolean;
+    description: string;
+}
+
+export interface TodosList {
+    list: Todo[];
+}
+
+export const todosListInitialState: TodosList = {
+    list : [
+        {
+            id: -1,
+            description: '',
+            done: false,
+            label: '',
+        }
+    ]
+};
+
+export const todosStoreReducer: Reducer<TodosList, Actions> = 
+    (state: TodosList = todosListInitialState, actions: Actions) => {
+        switch (actions.type){
+            case TodosStoreActions.SET_NEW_TODO:
+                return {
+                    ...state,
+                    list: [
+                        ...state.list,
+                        actions.payload.todo
+                    ]
+                };
+            case TodosStoreActions.SET_TODO_DONE:
+                const todoToChange: Todo | undefined = state.list.find(el => el.id === actions.payload.id);
+                if (todoToChange) {
+                    todoToChange.done = true;
+                    return {
+                        ...state,
+                        list: [
+                            ...state.list.filter(el => el.id !== actions.payload.id),
+                            todoToChange
+                        ]
+                    };
+                }
+                return state;
+            case TodosStoreActions.SET_DELETE_TODO:
+                return {
+                    ...state,
+                    list: state.list.filter(el => el.id !== actions.payload.todo.id)
+                };
+            default:
+                return state;
+        }
+    }
+}
+
+////////////// todos.actions /////////////////////////////////
+
+import {Todo} from "../reducers/todos.reducer";
+
+export enum TodosStoreActions {
+    SET_NEW_TODO = 'SET_NEW_TODO', 
+    SET_TODO_DONE = 'SET_TODO_DONE',
+    SET_DELETE_TODO = 'SET_DELETE_TODO',
+}
+
+export interface SetNewTodoAction{
+    type: TodosStoreActions.SET_NEW_TODO,
+    payload: {
+        todo: Todo
+    }
+}
+
+export interface SetTodoDoneAction {
+    type: TodosStoreActions.SET_TODO_DONE,
+    payload: {
+        id: number,
+    }
+}
+
+export interface SetDeleteTodoAction {
+    type: TodosStoreActions.SET_DELETE_TODO,
+    payload: {
+        todo: Todo
+    }
+}
+
+export type Actions = SetNewTodoAction & SetTodoDoneAction & SetDeleteTodoAction;
+
+export const todosActions = {
+    setNewTodo: (todo: Todo) => ({
+        type: TodosStoreActions.SET_NEW_TODO,
+        payload: {todo}
+    }),
+    setTodoDone: (id: number): SetTodoDoneAction =>({
+        type: TodosStoreActions.SET_TODO_DONE,
+        payload: { id}
+    }),
+    setDeleteTodo: (todo: Todo): SetDeleteTodoAction => ({
+        type: TodosStoreActions.SET_DELETE_TODO,
+        payload: {todo}
+    }),
+
+};
