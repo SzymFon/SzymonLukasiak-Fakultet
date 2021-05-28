@@ -1,0 +1,142 @@
+///////// app ////////
+import React from 'react';
+import logo from './logo.svg';
+import { Switch, Route, BrowserRouter} from 'react-router-dom';
+import { Provider} from 'react-redux';
+
+import Home from './Views/home/Home';
+import Movie from './Views/movie/Movie';
+import Page404 from './Views/page404/Page404';
+import store from './store';
+
+import './App.css';
+import { FiberPin } from '@material-ui/icons';
+import TodoPanel from './Views/todoPanel/todoPanel';
+
+const App = () => {
+    
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Provider store={ store}>
+          <Switch>
+            <Route path="/" component ={Home} exact />
+            <Route path="/movie/:id" component={Movie}/>
+            <Route path="/todos" component = {TodoPanel}/>
+            <Route path="*" component ={ Page404} />
+          </Switch>
+        </Provider>
+      </BrowserRouter>
+
+    </div>
+  );
+}
+
+
+
+export default App;
+
+////////index.ts/////////////
+const context = new Map();
+
+export const getAction =<T extends any> (Action: new()=> T): T => {
+    if(context.has(Action)){
+        return context.get(Action);
+    }
+
+    const action = new Action();
+    context.set(Action, action);
+    return action;
+}
+
+///////// usAction.ts////////////
+import React from 'react';
+import { getAction } from '../store/actions';
+
+export const useAction = <T extends any>(Action: new ()=> T) => {
+    const {current} = React.useRef(getAction(Action));
+    return current;
+
+}
+
+//////////todoPanel.tsx /////////////
+import React from 'react';
+import { useSelector } from 'react-redux';
+import {useAction} from '../../hooks/useAction';
+import { TodoService } from '../../services/todo.service';
+import store from '../../store';
+import todoSelector from '../../store/selectors/todo.selector';
+import { Todo } from '../../store/reducers/todos.reducer';
+
+const TodoPanel = () => {
+    const todoActions = useAction(TodoService);
+    const todos = useSelector(todoSelector.getAll);
+
+    React.useEffect(()=>{
+        todoActions.setNewTodo(
+            {
+                id: 123,
+                label: 'testowyLabel',
+                done: false,
+                description: 'pierwszy wpis',
+            }
+        )
+    }, []);
+
+    const deleteTodo = (todo: Todo) => {
+        todoActions.setDeleteTodo(todo);
+    }
+
+
+
+    return (
+        <div> 
+            {todos.map((todo, index)=>(
+                <div key={index}>
+                    <button onClick={()=> deleteTodo(todo)}> Remove </button>
+                    <p>{todo.label}</p>
+                    <p>{todo.done}</p>
+                    <p>{todo.description}</p>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+export default TodoPanel;
+
+///// todo.selector.ts/////////////
+
+import { createSelector } from 'reselect';
+import { StoreState } from '../store';
+
+const todoSelector = {
+    getAll: createSelector(
+        (state: StoreState) => state.todos,
+        todos => todos.list,
+    )
+};
+
+export default todoSelector;
+
+
+///////////todo.service.ts /////////////////////
+import store from "../store";
+import {Todo} from "../store/reducers/todos.reducer";
+import {todosActions} from "../store/actions/todos.actions";
+import http from "../utils/http";
+import { omdApiKey } from "../key";
+export class TodoService {
+    
+    setNewTodo(todo: Todo){
+        store.dispatch(todosActions.setNewTodo(todo));
+    }
+
+    setTodoDone(todo: Todo){
+        store.dispatch(todosActions.setTodoDone(todo.id));
+    }
+
+    setDeleteTodo(todo: Todo){  
+        store.dispatch(todosActions.setDeleteTodo(todo));
+    }
+}
